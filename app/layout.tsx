@@ -12,8 +12,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Miro Clone | Collaborative board",
-  description: "Real-Time Collaborative boards",
+  title: "Miro Clone | Collaborative Board",
+  description: "Real-Time Collaborative board",
 };
 
 export default function RootLayout({

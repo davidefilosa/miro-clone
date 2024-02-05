@@ -7,11 +7,11 @@ import { Rectangle } from "./rectangle";
 
 interface LayerPreviewProps {
   layerId: string;
-  onLayerPonterDown: (e: React.PointerEvent, layerId: string) => void;
+  onLayerPointerDown: (e: React.PointerEvent, layerId: string) => void;
   selectionColor?: string;
 }
 export const LayerPreview = memo(
-  ({ layerId, onLayerPonterDown, selectionColor }: LayerPreviewProps) => {
+  ({ layerId, onLayerPointerDown, selectionColor }: LayerPreviewProps) => {
     const layer = useStorage((root) => root.layers.get(layerId));
     if (!layer) {
       return null;
@@ -23,12 +23,10 @@ export const LayerPreview = memo(
           <Rectangle
             id={layerId}
             layer={layer}
-            onPointerDown={onLayerPonterDown}
+            onPointerDown={onLayerPointerDown}
             selectionColor={selectionColor}
           />
         );
-      default:
-        console.warn("Unkwnon layer type");
     }
   }
 );

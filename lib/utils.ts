@@ -3,6 +3,7 @@ import {
   Color,
   Layer,
   LayerType,
+  PathLayer,
   Point,
   Side,
   XYWH,

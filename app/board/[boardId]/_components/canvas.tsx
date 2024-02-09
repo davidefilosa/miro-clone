@@ -26,6 +26,7 @@ import {
 import { CursorsPresence } from "./cursors-presence";
 import {
   connectionIdToColor,
+  findIntersectingLayersWithRectangle,
   pointerEventToCanvasPoint,
   resizeBounds,
 } from "@/lib/utils";
@@ -93,6 +94,33 @@ export const Canvas = ({ boardId }: CanvasProps) => {
 
     [lastUsedColor]
   );
+
+  const updateSelectionNet = useMutation(
+    ({ storage, setMyPresence }, current: Point, origin: Point) => {
+      const layers = storage.get("layers").toImmutable();
+      setCanvasState({
+        mode: CanvasMode.SelectionNet,
+        origin,
+        current,
+      });
+
+      const ids = findIntersectingLayersWithRectangle(
+        layerIds,
+        layers,
+        origin,
+        current
+      );
+
+      setMyPresence({ selection: ids });
+    },
+    []
+  );
+
+  const startMultiSelection = useCallback((current: Point, origin: Point) => {
+    if (Math.abs(current.x - origin.x) + Math.abs(current.y - origin.y) > 5) {
+      setCanvasState({ mode: CanvasMode.SelectionNet, origin, current });
+    }
+  }, []);
 
   const translateSelectedLayers = useMutation(
     ({ storage, self }, point: Point) => {
@@ -162,21 +190,41 @@ export const Canvas = ({ boardId }: CanvasProps) => {
       y: camera.y - e.deltaY,
     }));
   }, []);
+  const onPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      const point = pointerEventToCanvasPoint(e, camera);
+
+      if (canvasState.mode === CanvasMode.Inserting) {
+        return;
+      }
+
+      setCanvasState({ origin: point, mode: CanvasMode.Pressing });
+    },
+    [camera, canvasState.mode, setCanvasState]
+  );
 
   const onPointerMove = useMutation(
     ({ setMyPresence }, e: React.PointerEvent) => {
       e.preventDefault();
-
       const current = pointerEventToCanvasPoint(e, camera);
-
-      if (canvasState.mode === CanvasMode.Translating) {
+      if (canvasState.mode === CanvasMode.Pressing) {
+        startMultiSelection(current, canvasState.origin);
+      } else if (canvasState.mode === CanvasMode.SelectionNet) {
+        updateSelectionNet(current, canvasState.origin);
+      } else if (canvasState.mode === CanvasMode.Translating) {
         translateSelectedLayers(current);
       } else if (canvasState.mode === CanvasMode.Resizing) {
         resizeSelectedLayer(current);
       }
       setMyPresence({ cursor: current });
     },
-    [camera, canvasState, resizeSelectedLayer, translateSelectedLayers]
+    [
+      camera,
+      canvasState,
+      resizeSelectedLayer,
+      translateSelectedLayers,
+      startMultiSelection,
+    ]
   );
 
   const onPointerLeave = useMutation(({ setMyPresence }) => {
@@ -251,6 +299,7 @@ export const Canvas = ({ boardId }: CanvasProps) => {
         onPointerMove={onPointerMove}
         onPointerLeave={onPointerLeave}
         onPointerUp={onPointerUp}
+        onPointerDown={onPointerDown}
       >
         <g
           style={{

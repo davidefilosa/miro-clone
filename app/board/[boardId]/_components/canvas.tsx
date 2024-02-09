@@ -32,6 +32,7 @@ import {
 import { LiveObject } from "@liveblocks/client";
 import { LayerPreview } from "./layer-preview";
 import { SelectionBox } from "./selection-box";
+import { SelectionTool } from "./selection-tool";
 
 interface CanvasProps {
   boardId: string;
@@ -243,6 +244,7 @@ export const Canvas = ({ boardId }: CanvasProps) => {
         undo={history.undo}
         redo={history.redo}
       />
+      <SelectionTool camera={camera} setLastUsedColor={setLastUsedColor} />
       <svg
         className="h-screen w-screen"
         onWheel={onWheel}
@@ -252,7 +254,7 @@ export const Canvas = ({ boardId }: CanvasProps) => {
       >
         <g
           style={{
-            transform: `translateX(${camera.x}px), translateY(${camera.y}px)`,
+            transform: `translate(${camera.x}px, ${camera.y}px)`,
           }}
         >
           {layerIds.map((layerId) => (
